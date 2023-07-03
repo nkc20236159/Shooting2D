@@ -5,25 +5,116 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    Vector3 dir = Vector3.zero; //移動方向を保存する変数
+    Vector3 dir;    // 移動方向保存
+    float speed;    // 移動速度保存
+    float timer;    // 自弾の発射間隔計算用
+    Animator anm;   // アニメーターコンポーネントを保存
+    AudioClip seClip;   // 効果音を保存する変数
+    Vector3 sePos;      // 効果音を再生する位置を保存する変数
+    public GameObject shotPre; // 弾のプレハブをセット
+    public GameObject meteoPre;
+    public int Meteostac;
+    public float Speed
+    {
+        set
+        {
+            speed = value;
+            speed = Mathf.Clamp(speed, 1, 20);
+        }
+        get { return speed; }
+    }
+    //public int Meteostac
+    //{
+    //    set
+    //    {
+    //        Meteostac = value;
+    //        Meteostac = Mathf.Clamp(Meteostac, 0, 20);
+    //    }
+    //    get { return Meteostac; }
+    //}
+
+    int shotLevel;  // 武器のレベル
+    public int ShotLevel
+    {
+        set
+        {
+            shotLevel = value;
+            shotLevel = Mathf.Clamp(shotLevel, 0, 12);
+        }
+        get { return shotLevel; }
+    }
+
     void Start()
     {
-
+        // アニメーターコンポーネント取得
+        anm = GetComponent<Animator>();
+        shotLevel = 0;  // 弾レベル
+        timer = 0;  // 時間初期化
+        speed = 10; // 初期スピード
+        seClip = Resources.Load<AudioClip>("Audio/SE/shoot3");
+        sePos = GameObject.Find("Main Camera").transform.position;
     }
+
     void Update()
     {
-        float speed = 5;
-
-        //移動方向をセット
+        // 上下左右移動
         dir.x = Input.GetAxisRaw("Horizontal");
         dir.y = Input.GetAxisRaw("Vertical");
-
         transform.position += dir.normalized * speed * Time.deltaTime;
 
-        //画面内移動制限
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x - 9f, 9f);
-        pos.y = Mathf.Clamp(pos.y - 5f, 5f); //なんか書き逃したかも↑
+        //// CキーでshotLevel変更(デバッグ用)
+        //if (Input.GetKeyDown(KeyCode.C))
+        //{
+        //    shotLevel = (shotLevel + 1) % 13;
+        //    Meteostac += 1;
+        //}
+
+       
+        
+        // Zキーが押されているとき弾を発射
+        timer += Time.deltaTime;
+        if (timer >= 0.3f && Input.GetKeyDown(KeyCode.Z))
+        {
+            timer = 0;
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                AudioSource.PlayClipAtPoint(seClip, sePos);
+            }
+            shotLevel = (shotLevel < 0) ? 0 : shotLevel;
+            for (int i = -shotLevel; i < shotLevel + 1; i++)
+            {
+                // 弾の生成位置はプレーヤーと同じ場所
+                Vector3 p = transform.position;
+
+                // プレーヤーの回転角度を取得し、15度ずつずらした方向に弾を回転させる
+                //Vector3 r = transform.rotation.eulerAngles + new Vector3(0, 0, 15f * i);
+                //Quaternion rot = Quaternion.Euler(r);
+                Quaternion rot = Quaternion.identity;
+                rot.eulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 15f * i);
+
+                // 位置と回転情報をセットして生成
+                Instantiate(shotPre, p, rot);
+                
+            }
+        }
+        //Vキー隕石?
+        GameDirector Gd = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+        if (Meteostac >= 1 && Input.GetKeyDown(KeyCode.V))
+        {
+            Instantiate(meteoPre);
+            Meteostac -= 1;
+            Gd.Meteostac -= 1;
+        }
+
+            // 画面内制限
+            Vector2 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, -9f, 9f);
+        pos.y = Mathf.Clamp(pos.y, -5f, 5f);
         transform.position = pos;
+
+        // アニメーション設定
+        if (dir.y == 0) anm.Play("neutral");
+        else if (dir.y == 1) anm.Play("LMove");
+        else if (dir.y == -1) anm.Play("RMove");
     }
 }

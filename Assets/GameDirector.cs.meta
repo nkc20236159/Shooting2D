@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: ab046d204b5d9964c81e1ae41099f354
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - kyoriLabel: {instanceID: 0}
+  - shotLabel: {instanceID: 0}
+  - Boss: {instanceID: 0}
+  - itemPre: {fileID: 788899497188623015, guid: 743e58a093c15dd44918efb16a8efdbf, type: 3}
+  - TimeGauge: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
